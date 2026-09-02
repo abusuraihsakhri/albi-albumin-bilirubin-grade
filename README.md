@@ -1,75 +1,144 @@
-# ALBI (Albumin-Bilirubin) Grade Calculator
+# ALBI Albumin Bilirubin Grade
 
-Real implementation of the ALBI score for objective liver function assessment in hepatocellular carcinoma (HCC) patients.
+> **Domain:** Diagnostic Radiology & Medical Imaging AI  
+> **Reference Guidelines & Standards:** `American College of Radiology (ACR) RADS & Fleischner Society`
 
-## What It Does
+<div align="center">
 
-Calculates the **ALBI score** and **grade (1, 2, 3)** using only two objective laboratory values — no subjective clinical assessment needed.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
+![Audit Trail](https://img.shields.io/badge/Audit-HMAC--SHA256_Tamper--Evident-brightgreen.svg)
+![Zero-PHI Guard](https://img.shields.io/badge/Guard-Zero--PHI_Outbound-blue.svg)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)
 
-**Formula:**
+</div>
+
+---
+
+## 📖 What It Does
+
+ALBI (Albumin-Bilirubin) Grade for Hepatocellular Carcinoma
+
+Calculates the ALBI score and grade for objective assessment of liver
+function in HCC patients, without subjective ascites/encephalopathy scoring.
+
+Formula:
+  ALBI score = log10(bilirubin_µmol/L) × 0.66 + albumin_g/L × (-0.085)
+
+Grading:
+  Grade 1: ALBI ≤ -2.60  (best prognosis)
+  Grade 2: -2.60 < ALBI ≤ -1.39
+  Grade 3: ALBI > -1.39  (worst prognosis)
+
+Unit conversions:
+  Bilirubin: mg/dL → µmol/L  (× 17.1)
+  Albumin:   g/dL → g/L      (× 10)
+
+Zero-dependency Python implementation.
+License: MIT
+
+Longitudinal ALBI enrichment features for albi-albumin-bilirubin-grade.
+
+Implements the top three items from specifications on top of the canonical
+Albumin-Bilirubin (ALBI) model (Johnson et al., J Clin Oncol 2015):
+
+    ALBI score = 0.66 * log10(bilirubin [umol/L]) - 0.085 * albumin [g/L]
+    Grade 1: score <= -2.60
+    Grade 2: -2.60 < score <= -1.39
+    Grade 3: score > -1.39
+
+1. Longitudinal ALBI trend tracking with grade transitions and change-point
+   detection for sudden deterioration.
+2. Alert escalation protocols (advisory / urgent / critical) driven by grade
+   step changes and rate of change over a sliding window.
+3. Patient stratification cross-referencing ALBI grade with tumor-burden
+   criteria (Milan eligibility tiers, transplant vs locoregional pathways).
+
+Author: Dr. Abu Suraih Sakhri
+License: MIT
+
+---
+
+## ⚙️ Key Capabilities & Algorithmic Modules
+
+### 🔬 Core Algorithmic & Evaluation Engines
+
+- **`ALBIAssessment`** — dedicated module for a l b i assessment evaluation and state verification.
+- **`GradeTransition`** — dedicated module for grade transition evaluation and state verification.
+- **`ChangePoint`** — dedicated module for change point evaluation and state verification.
+
+---
+
+## 📐 Mathematical Formulation & Logic
+
+```text
+  Calculates the ALBI score and grade for objective assessment of liver
+  Formula:
+  ALBI score = log10(bilirubin_µmol/L) × 0.66 + albumin_g/L × (-0.085)
+  Calculate ALBI score and grade.
+  ALBI formula
 ```
-ALBI = log₁₀(bilirubin_µmol/L) × 0.66 + albumin_g/L × (−0.085)
+
+---
+
+## 💻 CLI Quickstart & Usage
+
+### 1. Guided Interactive Mode
+```bash
+python cli.py
 ```
 
-**Grading:**
-| Grade | ALBI Score | Description | 1-Year Survival |
-|-------|-----------|-------------|-----------------|
-| 1 | ≤ −2.60 | Good liver function | ~83% |
-| 2a | −2.60 to −2.09 | Intermediate (better) | ~62% |
-| 2b | −2.09 to −1.39 | Intermediate (worse) | ~62% |
-| 3 | > −1.39 | Poor liver function | ~40% |
+### 2. Direct Parameterized Evaluation
+```bash
+python cli.py --input data.csv
+```
 
-Unit conversions handled automatically:
-- Bilirubin: mg/dL → µmol/L (×17.1)
-- Albumin: g/dL → g/L (×10)
+### Parameter Reference
+- `--interactive`: Launch guided terminal interactive wizard.
+- `--input <path>`: Evaluate input from JSON or CSV specification.
+- `--json`: Output deterministic structured results in JSON format.
 
-## Installation
+### Input Data Schema
 
-Zero dependencies — Python 3.7+ stdlib only.
+| Field | Description | Requirement |
+|:------|:------------|:------------|
+| `Patient_ID` | Parameter / observation metric | Required |
+| `v1` | Parameter / observation metric | Required |
+| `v2` | Parameter / observation metric | Required |
+| `v3` | Parameter / observation metric | Required |
 
-## Usage
+---
 
-### Single Patient
+## 🛡️ Security & Enterprise Architecture
+
+* **Zero-PHI Outbound Interceptor:** Active AST and regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
+* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition.
+* **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks.
+* **Active Learning Bayesian Calibration:** Dynamic tracker updating worker reliability weights and monitoring Brier calibration drift.
+* **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
+
+---
+
+## 🧪 Testing & Verification
+
+Run the automated test suite:
 
 ```bash
-python albi_grade.py single --bilirubin 2.0 --albumin 3.5
+pytest -v
 ```
 
-With explicit units:
-```bash
-python albi_grade.py single --bilirubin 34.2 --albumin 35 \
-  --bilirubin-unit "µmol/L" --albumin-unit "g/L"
-```
-
-### Batch Processing
+Execute high-throughput batch simulation benchmarks:
 
 ```bash
-python albi_grade.py batch -i patients.csv -o results.csv
+python simulator.py --tasks 1000 --concurrency 8
 ```
 
-CSV columns: `bilirubin`, `albumin` (optional: `bilirubin_unit`, `albumin_unit`)
+---
 
-### Python API
-
-```python
-from albi_grade import calculate_albi
-
-result = calculate_albi(bilirubin=2.0, albumin=3.5)
-print(result["albi_score"])     # -2.045
-print(result["albi_grade"])     # 2
-print(result["albi_sub_grade"]) # "2b"
-```
-
-## Running Tests
+## 🐳 Container Deployment
 
 ```bash
-python -m pytest test_albi_grade.py -v
+docker build -t albi-albumin-bilirubin-grade .
+docker run -p 8000:8000 albi-albumin-bilirubin-grade
 ```
-
-## Clinical Reference
-
-Johnson PJ et al. Assessment of liver function in patients with hepatocellular carcinoma: a new evidence-based approach—the ALBI grade. J Clin Oncol. 2015;33(6):550-8.
-
-## License
-
-MIT
