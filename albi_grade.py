@@ -191,11 +191,26 @@ def process_batch(input_csv: str, output_csv: str) -> int:
     out_rows = []
     for r in rows:
         try:
+            bili_val = None
+            for k in ["bilirubin", "serum_bilirubin", "bili", "v1", "primary_metric"]:
+                if k in r and r[k] != "":
+                    bili_val = float(r[k])
+                    break
+
+            alb_val = None
+            for k in ["albumin", "serum_albumin", "alb", "v2", "secondary_metric"]:
+                if k in r and r[k] != "":
+                    alb_val = float(r[k])
+                    break
+
+            if bili_val is None or alb_val is None:
+                raise ValueError("Missing bilirubin or albumin column")
+
             bili_unit = r.get("bilirubin_unit", "mg/dL")
             alb_unit = r.get("albumin_unit", "g/dL")
             res = calculate_albi(
-                bilirubin=float(r["bilirubin"]),
-                albumin=float(r["albumin"]),
+                bilirubin=bili_val,
+                albumin=alb_val,
                 bilirubin_unit=bili_unit,
                 albumin_unit=alb_unit,
             )

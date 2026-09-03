@@ -186,3 +186,12 @@ class TestBatch:
         content = csv_out.read_text(encoding="utf-8")
         assert "albi_score" in content
         assert "albi_grade" in content
+
+    def test_batch_sample_csv(self, tmp_path):
+        import os
+        sample_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "sample.csv")
+        csv_out = tmp_path / "out_sample.csv"
+        count = process_batch(sample_path, str(csv_out))
+        assert count == 3
+        assert csv_out.exists()
+
